@@ -37,9 +37,7 @@ jobs:
             push: true
             context: "."
             platforms: linux/amd64,linux/arm64
-            tags: |
-              metacron/envwarden:latest
-              metacron/envwarden:unstable
+            tags: metacron/envwarden:unstable
         
         - name: Image digest (metacron/envwarden:unstable)
           run: echo ${{ steps.docker_build.outputs.digest }}
