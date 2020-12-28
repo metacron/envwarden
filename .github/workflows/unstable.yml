@@ -10,7 +10,7 @@ jobs:
   push_to_registry:
   
       name: Push Docker image to GitHub Packages
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-20.04
 
       steps:
 
@@ -36,8 +36,8 @@ jobs:
           with:
             push: true
             context: "."
-            platforms: linux/amd64,linux/arm64
-            tags: metacron/envwarden:unstable
+            platforms: linux/amd64,linux/arm64,linux/arm/v6,linux/arm/v7
+            tags: ghcr.io/metacron/envwarden:unstable,ghcr.io/metacron/envwarden:latest
         
         - name: Image digest (metacron/envwarden:unstable)
           run: echo ${{ steps.docker_build.outputs.digest }}
