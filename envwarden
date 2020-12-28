@@ -1,7 +1,5 @@
 #!/bin/bash
 
-SEARCH=envwarden
-
 usage()
 {
     echo "envwarden: use Bitwarden to manage server secrets"
@@ -19,8 +17,8 @@ usage()
     echo ""
     echo "Options:"
     echo -e "\t-h --help"
-    echo -e "\t-s --search <keyword> (optional) define the search term for bitwarden items (defaults to $SEARCH)"
     echo -e "\t-o --organizationid <organization-id> define the filter for organization scoped secrets"
+    echo -e "\t-l --collectionid <collection-id> define the filter for collection scoped secrets"
     echo -e "\t-d --dotenv (optional) outputs secrets to stdout in .env format"
     echo -e "\t-k --dotenv-docker (optional) outputs secrets to stdout in a \"docker-friendly\" .env format (no quotes)"
     echo -e "\t-c --copy <destination folder> (optional) copies all attachments on the item to a folder"
@@ -45,12 +43,12 @@ while [[ $# -gt 0 ]]; do
         -k | --dotenv-docker)
             DOTENV_DOCKER=true
             ;;
-        -s | --search)
-            SEARCH=$2
-            shift
-            ;;
         -o | --organizationid)
             BW_ORGANIZATIONID=$2
+            shift
+            ;;
+        -l | --collectionid)
+            BW_COLLECTIONID=$2
             shift
             ;;
         -c | --copy)
@@ -93,14 +91,14 @@ while read -r key; do
         quoted_value="$(echo "$value" | sed "s/'/'\"'\"'/g")"
         echo export \'$quoted_key\'=\'$quoted_value\'
     fi
-done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].fields[]? | select(.name != null) | select(.value != null) | .name, .value')
+done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[].fields[]? | select(.name != null) | select(.value != null) | .name, .value')
 
 if [[ -n "$COPY_TO" ]]; then
-    item_id=$(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].id')
+    item_id=$(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[].id')
     if [[ -n "$item_id" ]]; then
         while read -r attachment_id; do
             read -r filename
             bw get attachment "$attachment_id" --itemid "$item_id" --output "$COPY_TO/$filename" 1>&2
-        done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].attachments[] | .id, .fileName')
+        done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[].attachments[] | .id, .fileName')
     fi
 fi
