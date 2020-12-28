@@ -1,10 +1,12 @@
-FROM node:11-alpine
+FROM node:12-buster-slim
 
 ARG BITWARDEN_CLI_VERSION=1.13.3
 
-LABEL maintainer="envwarden"
+LABEL maintainer="metacron"
 
-RUN apk update && apk add bash wget jq
+RUN apt-get update -y && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+	wget jq
 
 RUN npm install -g @bitwarden/cli@${BITWARDEN_CLI_VERSION}
 
