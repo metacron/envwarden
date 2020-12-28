@@ -75,6 +75,8 @@ if ! bw sync > /dev/null; then
     exit 1
 fi
 
+echo ""
+
 while read -r key; do
     read -r value
     if [[ -n "$DOTENV" ]]; then
