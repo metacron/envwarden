@@ -24,7 +24,7 @@ This fork aims to build a GitHub Action container image to pull secrets from Bit
 
 ### Adding secrets to Bitwarden
 
-![](https://raw.githubusercontent.com/envwarden/envwarden/master/assets/bitwarden-item-screenshot.png "bitwarden item for envwarden")
+![](https://raw.githubusercontent.com/metacron/envwarden/master/assets/bitwarden-item-screenshot.png "bitwarden item for envwarden")
 
 * Filter by organization id and collection id
 * Add custom fields for each secure environment variable you need
