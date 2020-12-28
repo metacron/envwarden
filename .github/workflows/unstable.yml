@@ -29,7 +29,9 @@ jobs:
 
         - name: Check out the reposiotry
           uses: actions/checkout@v2
-
+        
+        # Configuration requirement:
+        # https://docs.github.com/en/free-pro-team@latest/packages/getting-started-with-github-container-registry/enabling-improved-container-support
         - name: Push to GitHub Packages
           id: docker_build
           uses: docker/build-push-action@v2
