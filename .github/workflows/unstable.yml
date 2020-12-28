@@ -24,7 +24,7 @@ jobs:
           uses: docker/login-action@v1
           with:
             registry: ghcr.io
-            username: ${{ github.GH_PAT_USER }}
+            username: ${{ secrets.GH_PAT_USER }}
             password: ${{ secrets.GH_PAT }}
 
         - name: Check out the reposiotry
