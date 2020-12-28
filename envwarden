@@ -20,6 +20,7 @@ usage()
     echo "Options:"
     echo -e "\t-h --help"
     echo -e "\t-s --search <keyword> (optional) define the search term for bitwarden items (defaults to $SEARCH)"
+    echo -e "\t-o --organizationid <organization-id> define the filter for organization scoped secrets"
     echo -e "\t-d --dotenv (optional) outputs secrets to stdout in .env format"
     echo -e "\t-k --dotenv-docker (optional) outputs secrets to stdout in a \"docker-friendly\" .env format (no quotes)"
     echo -e "\t-c --copy <destination folder> (optional) copies all attachments on the item to a folder"
@@ -28,7 +29,7 @@ usage()
     echo "You can use ~/.envwarden to store your credentials (just email, or email:password)"
 }
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
         -h | --help)
@@ -48,6 +49,10 @@ while [[ $# > 0 ]]; do
             SEARCH=$2
             shift
             ;;
+        -o | --organizationid)
+            BW_ORGANIZATIONID=$2
+            shift
+            ;;
         -c | --copy)
             COPY_TO=$2
             COPY_TO=${COPY_TO:=.}
@@ -62,16 +67,12 @@ while [[ $# > 0 ]]; do
     shift
 done
 
-if [[ -f $HOME/.envwarden ]]; then
-    IFS=':' read -r bw_login bw_password <<< `cat $HOME/.envwarden`
-else
-    (>&2 echo ".envwarden file not found in $HOME ... prompting for credentials")
-fi
-
 bw logout > /dev/null
-export BW_SESSION="`bw login $bw_login $bw_password --raw`"
-bw sync > /dev/null
-if [[ $? != 0 ]]; then
+export BW_SESSION
+bw login --apikey
+BW_SESSION="$(bw unlock "$BW_PASSWORD" --raw)"
+
+if ! bw sync > /dev/null; then
     (>&2 echo "unable to login or sync with bitwarden.")
     exit 1
 fi
@@ -79,11 +80,12 @@ fi
 while read -r key; do
     read -r value
     if [[ -n "$DOTENV" ]]; then
-        echo $key=\"$value\"
+        echo "$key=\"$value\""
     elif [[ -n "$DOTENV_DOCKER" ]]; then
-        echo $key=$value
+        echo "$key=$value"
      elif [[ -n "$GITHUB_ACTIONS" ]]; then
-        echo 'echo "::set-output name='$key'::'$value'"'
+        echo "::add-mask::$value"
+        echo "::set-output name=$key::$value"
     else
         # wrap keys and values in single quotes to avoid further interpolation,
         # plus sanitize for single quote symbols to avoid command injection
@@ -91,14 +93,14 @@ while read -r key; do
         quoted_value="$(echo "$value" | sed "s/'/'\"'\"'/g")"
         echo export \'$quoted_key\'=\'$quoted_value\'
     fi
-done < <(bw list items --search "$SEARCH" |jq -r '.[].fields[]? | select(.name != null) | select(.value != null) | .name, .value')
+done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].fields[]? | select(.name != null) | select(.value != null) | .name, .value')
 
 if [[ -n "$COPY_TO" ]]; then
-    item_id=$(bw list items --search "$SEARCH" |jq -r '.[].id')
+    item_id=$(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].id')
     if [[ -n "$item_id" ]]; then
         while read -r attachment_id; do
             read -r filename
-            bw get attachment $attachment_id --itemid $item_id --output "$COPY_TO/$filename" 1>&2
-        done < <(bw list items --search "$SEARCH" |jq -r '.[].attachments[] | .id, .fileName')
+            bw get attachment "$attachment_id" --itemid "$item_id" --output "$COPY_TO/$filename" 1>&2
+        done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --search "$SEARCH" |jq -r '.[].attachments[] | .id, .fileName')
     fi
 fi

@@ -1,0 +1,15 @@
+name: 'envwarden'
+description: 'Secret variables automation with Bitwarden as source'
+inputs:
+  search_term:
+    description: 'Search term to get attributes from results and set the GitHub masks/outputs'
+    required: true
+outputs: {}
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - envwarden
+    - --search
+    - ${{ inputs.search_term }}
+    - --github
