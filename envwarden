@@ -95,6 +95,24 @@ while read -r key; do
     fi
 done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[].fields[]? | select(.name != null) | select(.value != null) | .name, .value')
 
+while read -r key; do
+    read -r value
+    if [[ -n "$DOTENV" ]]; then
+        echo "$key=\"$value\""
+    elif [[ -n "$DOTENV_DOCKER" ]]; then
+        echo "$key=$value"
+     elif [[ -n "$GITHUB_ACTIONS" ]]; then
+        echo "::add-mask::$value"
+        echo "::set-output name=$key::$value"
+    else
+        # wrap keys and values in single quotes to avoid further interpolation,
+        # plus sanitize for single quote symbols to avoid command injection
+        quoted_key="$(echo "$key" | sed "s/'/'\"'\"'/g")"
+        quoted_value="$(echo "$value" | sed "s/'/'\"'\"'/g")"
+        echo export \'$quoted_key\'=\'$quoted_value\'
+    fi
+done < <(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[] | select(.name | test("^[_A-Z]*$")) | select(.notes != null) | .name, .notes')
+
 if [[ -n "$COPY_TO" ]]; then
     item_id=$(bw list items --organizationid "$BW_ORGANIZATIONID" --collectionid "$BW_COLLECTIONID" |jq -r '.[].id')
     if [[ -n "$item_id" ]]; then
