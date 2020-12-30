@@ -5,15 +5,15 @@ usage()
     echo "envwarden: use Bitwarden to manage server secrets"
     echo ""
     echo "Get your secure environment variables from Bitwarden onto your server."
-    echo "envwarden searches your Bitwarden vault for items matching"
-    echo "a search criteria (defaults to 'envwarden')."
     echo "Then it goes through all custom fields on every item found"
     echo "and make them available as envirnoment variables."
     echo ""
-    echo "Usage: envwarden [--help] [--search] [--dotenv] [--copy]"
+    echo "Usage: envwarden [--help] [--dotenv] [--copy]"
     echo ""
     echo "To export environment variables, use: \`eval \$(envwarden)\`"
     echo "To create an .env file, use: \`envwarden --dotenv > .env\`"
+    echo ""
+    echo "BW_PASSWORD environment variable must store the password to unlock the vault."
     echo ""
     echo "Options:"
     echo -e "\t-h --help"
@@ -24,7 +24,6 @@ usage()
     echo -e "\t-c --copy <destination folder> (optional) copies all attachments on the item to a folder"
     echo -e "\t-g --github envs to github actions"
     echo ""
-    echo "You can use ~/.envwarden to store your credentials (just email, or email:password)"
 }
 
 while [[ $# -gt 0 ]]; do

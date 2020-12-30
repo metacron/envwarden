@@ -29,6 +29,7 @@ This fork aims to build a GitHub Action container image to pull secrets from Bit
 * Filter by organization id and collection id
 * Add custom fields for each secure environment variable you need
   (fields can be text, hidden or boolean)
+* **If any of your secure notes have _ character, it'll be considered an environment var and its contents will be set as value**
 * You can add as many fields as you need, and you can also create
   multiple items, as long as they match the same search term
   (their secrets would be combined)
